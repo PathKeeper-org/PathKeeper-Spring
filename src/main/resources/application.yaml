@@ -12,6 +12,17 @@ spring:
       hibernate:
         format_sql: true
 
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: ${REDIS_PASSWORD}
+
+jwt:
+  secret: ${secret_key}
+  access-token-validity-in-milliseconds: 1800000
+  refresh-token-validity-in-milliseconds: 1209600000
+
 logging:
   level:
     org.hibernate.SQL: debug
