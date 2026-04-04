@@ -31,8 +31,8 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private Role role; // GUARDIAN(보호자), PROTEGE(피보호자)
 
-    @Column(unique = true, length = 6)
-    private String inviteCode; // 6자리 초대 코드
+//    @Column(unique = true, length = 6)
+//    private String inviteCode; // 6자리 초대 코드
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "partner_id")
@@ -42,12 +42,12 @@ public class User extends BaseEntity {
     private String fcmToken; // 푸시 알림용 디바이스 토큰
 
     @Builder
-    public User(String name, String email, String password, Role role, String inviteCode) {
+    public User(String name, String email, String password, Role role) {
         this.name = name;
         this.email = email;
         this.password = password;
         this.role = role;
-        this.inviteCode = inviteCode;
+//        this.inviteCode = inviteCode;
     }
 
     // 비즈니스 로직: 파트너 연결
