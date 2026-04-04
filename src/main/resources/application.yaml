@@ -19,7 +19,7 @@ spring:
       password: ${REDIS_PASSWORD}
 
 jwt:
-  secret: ${secret_key}
+  secret: ${SECRET_KEY}
   access-token-validity-in-milliseconds: 1800000
   refresh-token-validity-in-milliseconds: 1209600000
 

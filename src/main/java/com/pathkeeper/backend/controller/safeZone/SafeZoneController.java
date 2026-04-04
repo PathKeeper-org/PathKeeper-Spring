@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Safe Zone", description = "안심존 설정 및 관리 API")
 @RestController
-@RequestMapping("/api/v1/safe-zones")
+@RequestMapping("/api/safe-zones")
 public class SafeZoneController {
 
     @Operation(summary = "안심존 생성 및 덮어쓰기", description = "경로들을 병합한 단일 다각형(Polygon) 데이터를 서버에 저장합니다. 기존 데이터가 있으면 덮어씁니다.")

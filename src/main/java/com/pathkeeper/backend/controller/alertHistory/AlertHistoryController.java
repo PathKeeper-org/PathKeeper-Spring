@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Alert", description = "안심존 이탈, 배터리 부족 등 알림 발생 내역 API")
 @RestController
-@RequestMapping("/api/v1/alerts")
+@RequestMapping("/api/alerts")
 public class AlertHistoryController {
 
     @Operation(summary = "알림 내역 목록 조회", description = "나에게 발생했던 최근 알림(이탈, 배터리 경고 등) 내역을 최신순으로 페이징하여 가져옵니다.")

@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "User", description = "유저 정보, 초대 코드 및 파트너 관리 API")
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/api/users")
 public class UserController {
 
     @Operation(summary = "내 정보 조회", description = "현재 로그인한 유저의 프로필을 조회합니다.")

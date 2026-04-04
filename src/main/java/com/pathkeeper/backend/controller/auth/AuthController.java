@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Authentication", description = "회원가입, 로그인, 파트너 연결 API")
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
@@ -28,6 +28,7 @@ public class AuthController {
     @Operation(summary = "이메일 회원가입", description = "새로운 유저(보호자/피보호자)를 등록합니다.")
     @PostMapping("/signup")
     public ResponseEntity<Void> signup(@Valid @RequestBody SignupRequest request) {
+        authService.signup(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }

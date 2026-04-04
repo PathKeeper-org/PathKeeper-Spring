@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Location", description = "위치 기록 및 조회 API")
 @RestController
-@RequestMapping("/api/v1/locations")
+@RequestMapping("/api/locations")
 public class LocationLogController {
 
     @Operation(summary = "현재 위치 ?분 주기 전송 (피보호자용)", description = "?분 주기로 피보호자의 현재 GPS 좌표와 배터리 상태를 서버로 전송합니다.")
