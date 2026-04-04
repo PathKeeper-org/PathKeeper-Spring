@@ -40,7 +40,10 @@ public class UserController {
     public ResponseEntity<InviteCodeResponse> generateInviteCode(
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        return ResponseEntity.ok(null);
+        // 유저 이메일을 넘겨서 코드를 생성
+        InviteCodeInfo info = userService.generateInviteCode(userDetails.getEmail());
+
+        return ResponseEntity.ok(InviteCodeResponse.from(info));
     }
 
     @Operation(summary = "파트너 연결", description = "6자리 초대 코드를 입력하여 피보호자와 보호자가 매핑됩니다.")

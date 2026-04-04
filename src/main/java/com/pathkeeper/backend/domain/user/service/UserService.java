@@ -21,12 +21,26 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class UserService {
     private final UserRepository userRepository;
+    // Redis에 접근하기 위한 템플릿
+    private final StringRedisTemplate redisTemplate;
+
+    private static final String INVITE_CODE_PREFIX = "INVITE_CODE:";
+    private static final long INVITE_CODE_EXPIRATION_MINUTES = 30;
 
     public ProfileInfo findProfile(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(()-> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         return ProfileInfo.from(user);
+    }
+
+    public InviteCodeInfo generateInviteCode(String email) {
+        String inviteCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        String redisKey = INVITE_CODE_PREFIX + inviteCode;
+
+        redisTemplate.opsForValue().set(redisKey, email, Duration.ofMinutes(INVITE_CODE_EXPIRATION_MINUTES));
+
+        return new InviteCodeInfo(inviteCode);
     }
 
 
