@@ -5,12 +5,12 @@ spring:
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
-jpa:
-  hibernate:
-    ddl-auto: create
-  properties:
+  jpa:
     hibernate:
-      format_sql: true
+      ddl-auto: create
+    properties:
+      hibernate:
+        format_sql: true
 
 logging:
   level:
