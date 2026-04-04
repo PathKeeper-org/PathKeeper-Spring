@@ -43,5 +43,28 @@ public class UserService {
         return new InviteCodeInfo(inviteCode);
     }
 
+    @Transactional
+    public PartnerLinkInfo linkPartner(String myEmail, String inviteCode) {
+        String redisKey = INVITE_CODE_PREFIX + inviteCode.toUpperCase();
+        String partnerEmail = redisTemplate.opsForValue().get(redisKey);
+
+        if (partnerEmail == null)
+            throw new BusinessException(ErrorCode.INVALID_INVITE_CODE);
+
+        if (myEmail.equals(partnerEmail))
+            throw new BusinessException(ErrorCode.CANNOT_LINK_SELF);
+
+        User me = userRepository.findByEmail(myEmail)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        User partner = userRepository.findByEmail(partnerEmail)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        me.linkPartner(partner);
+        partner.linkPartner(me);
+
+        redisTemplate.delete(redisKey);
+
+        return new PartnerLinkInfo(partner.getId(), partner.getName());
+    }
 
 }

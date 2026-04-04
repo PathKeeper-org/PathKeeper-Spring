@@ -51,7 +51,9 @@ public class UserController {
     public ResponseEntity<PartnerLinkResponse> linkPartner(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody PartnerLinkRequest request) {
-        return ResponseEntity.ok(null);
+        PartnerLinkInfo info = userService.linkPartner(userDetails.getEmail(), request.inviteCode());
+
+        return ResponseEntity.ok(PartnerLinkResponse.from(info));
     }
 
     @Operation(summary = "FCM 토큰 업데이트", description = "앱 실행 시 갱신되는 스마트폰의 푸시 알림용 FCM 토큰을 서버에 저장합니다.")
