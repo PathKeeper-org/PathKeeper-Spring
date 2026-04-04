@@ -1,8 +1,10 @@
 package com.pathkeeper.backend.controller.auth.dto;
 
+import com.pathkeeper.backend.domain.user.Role;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
 @Schema(description = "회원가입 요청 DTO")
@@ -21,5 +23,9 @@ public record SignupRequest(
 
         @Schema(description = "사용자 이름", example = "홍길동")
         @NotBlank(message = "이름은 필수입니다.")
-        String name
+        String name,
+
+        @Schema(description = "사용자 역할 (GUARDIAN: 보호자, PROTEGE: 피보호자)", example = "GUARDIAN")
+        @NotNull(message = "사용자 역할은 필수입니다.")
+        Role role
 ) {}

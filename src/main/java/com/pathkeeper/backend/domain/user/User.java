@@ -42,7 +42,10 @@ public class User extends BaseEntity {
     private String fcmToken; // 푸시 알림용 디바이스 토큰
 
     @Builder
-    public User(Role role, String inviteCode) {
+    public User(String name, String email, String password, Role role, String inviteCode) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
         this.role = role;
         this.inviteCode = inviteCode;
     }
