@@ -8,12 +8,13 @@ import com.pathkeeper.backend.domain.user.repository.UserRepository;
 import com.pathkeeper.backend.global.exception.BusinessException;
 import com.pathkeeper.backend.global.exception.ErrorCode;
 import com.pathkeeper.backend.global.security.jwt.TokenProvider;
-import com.pathkeeper.backend.global.security.refresh.RefreshToken;
-import com.pathkeeper.backend.global.security.refresh.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Duration;
 
 @Service
 @RequiredArgsConstructor
@@ -23,8 +24,11 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
-    // Redis 접근을 위한 Repository
-    private final RefreshTokenRepository refreshTokenRepository;
+    // Redis에 접근하기 위해 추가
+    private final StringRedisTemplate redisTemplate;
+
+    private static final String RT_PREFIX = "RT:";
+    private static final String BLACKLIST_PREFIX = "BLACKLIST:";
 
     @Transactional
     public void signup(SignupRequest request) {
@@ -57,44 +61,59 @@ public class AuthService {
 
         String refreshToken = tokenProvider.createRefreshToken();
         // Redis에 Refresh Token 저장 (Key: 토큰 문자열, Value: 이메일)
-        refreshTokenRepository.save(new RefreshToken(
-                refreshToken,
+        redisTemplate.opsForValue().set(
+                RT_PREFIX + refreshToken,
                 user.getEmail(),
-                tokenProvider.getRefreshTokenValiditySeconds()
-        ));
+                Duration.ofSeconds(tokenProvider.getRefreshTokenValiditySeconds())
+                );
 
         return new TokenInfo(accessToken, refreshToken);
     }
 
     @Transactional
     public TokenInfo reissue(String refreshToken) {
+        String redisKey = RT_PREFIX + refreshToken;
         // Redis에서 토큰 조회
-        RefreshToken existedRefreshToken = refreshTokenRepository.findById(refreshToken)
-                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN));
+        String email = redisTemplate.opsForValue().get(redisKey);
+
+        if (email == null)
+            throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
 
         // Access Token을 새로 만들려면 email과 role이 필요하므로 User 조회
-        User user = userRepository.findByEmail(existedRefreshToken.getEmail())
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         // [RTR] 사용된 기존 Refresh Token은 즉시 삭제
-        refreshTokenRepository.delete(existedRefreshToken);
+        redisTemplate.delete(redisKey);
 
         String newAccessToken = tokenProvider.createAccessToken(user.getEmail(), user.getRole().name());
         String newRefreshToken = tokenProvider.createRefreshToken();
 
-        refreshTokenRepository.save(new RefreshToken(
-                newRefreshToken,
+        redisTemplate.opsForValue().set(
+                RT_PREFIX + newRefreshToken,
                 user.getEmail(),
-                tokenProvider.getRefreshTokenValiditySeconds()
-        ));
+                Duration.ofSeconds(tokenProvider.getRefreshTokenValiditySeconds())
+        );
 
         return new TokenInfo(newAccessToken, newRefreshToken);
     }
 
     @Transactional
-    public void logout(String refreshToken) {
+    public void logout(String accessToken, String refreshToken) {
         // Redis에서 해당 토큰을 찾아 삭제
-        refreshTokenRepository.findById(refreshToken)
-                .ifPresent(refreshTokenRepository::delete);
+        if (refreshToken != null)
+            redisTemplate.delete(RT_PREFIX + refreshToken);
+
+        if (accessToken != null) {
+            long remainingExpiration = tokenProvider.getRemainingExpiration(accessToken);
+
+            if (remainingExpiration > 0) {
+                redisTemplate.opsForValue().set(
+                        BLACKLIST_PREFIX + accessToken,
+                        "logout",
+                        Duration.ofMillis(remainingExpiration)
+                );
+            }
+        }
     }
 }

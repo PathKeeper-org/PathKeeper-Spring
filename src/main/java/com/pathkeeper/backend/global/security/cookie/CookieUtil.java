@@ -1,4 +1,4 @@
-package com.pathkeeper.backend.global.security.refresh;
+package com.pathkeeper.backend.global.security.cookie;
 
 import org.springframework.http.ResponseCookie;
 

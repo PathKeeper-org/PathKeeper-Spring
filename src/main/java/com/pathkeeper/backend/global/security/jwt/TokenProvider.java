@@ -92,4 +92,20 @@ public class TokenProvider {
 
         return new AccessTokenInfo(userId, role);
     }
+
+    public long getRemainingExpiration(String token) {
+        try {
+            Date expiration = Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getExpiration();
+
+            long now = System.currentTimeMillis();
+            return Math.max(expiration.getTime() - now, 0);
+        } catch (Exception e){
+            return 0;
+        }
+    }
 }

@@ -5,16 +5,18 @@ import com.pathkeeper.backend.controller.auth.service.AuthService;
 import com.pathkeeper.backend.global.exception.BusinessException;
 import com.pathkeeper.backend.global.exception.ErrorCode;
 import com.pathkeeper.backend.global.security.jwt.TokenProvider;
-import com.pathkeeper.backend.global.security.refresh.CookieUtil;
+import com.pathkeeper.backend.global.security.cookie.CookieUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Authentication", description = "회원가입, 로그인, 파트너 연결 API")
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
     private final AuthService authService;
     private final TokenProvider tokenProvider;
+    public static final String BEARER = "Bearer ";
 
     @Operation(summary = "이메일 회원가입", description = "새로운 유저(보호자/피보호자)를 등록합니다.")
     @PostMapping("/signup")
@@ -78,13 +81,17 @@ public class AuthController {
     @Operation(summary = "로그아웃", description = "Refresh Token을 삭제하고 쿠키를 비웁니다.")
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
+            HttpServletRequest request,
             @Parameter(hidden = true)
             @CookieValue(value = "refresh_token", required = false) String refreshToken) {
+        String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
+        String accessToken = null;
+
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER))
+            accessToken = bearerToken.substring(BEARER.length());
 
         // Redis에서 Refresh Token 삭제
-        if (refreshToken != null) {
-            authService.logout(refreshToken);
-        }
+        authService.logout(accessToken, refreshToken);
 
         ResponseCookie deleteCookie
                 = CookieUtil.emptyCookie("refresh_token");
