@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Alert", description = "안심존 이탈, 배터리 부족 등 알림 발생 내역 API")
-@RestController
+//@RestController
 @RequestMapping("/api/alerts")
 public class AlertHistoryController {
 

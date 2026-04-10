@@ -7,9 +7,9 @@ import jakarta.validation.constraints.NotNull;
 public record SafeZoneCoordinate(
         @Schema(description = "위도 (Latitude)", example = "37.402056")
         @NotNull(message = "위도는 필수 값입니다.")
-        Double lat,
+        Double latitude,
 
         @Schema(description = "경도 (Longitude)", example = "127.108212")
         @NotNull(message = "경도는 필수 값입니다.")
-        Double lng
+        Double longitude
 ){}
