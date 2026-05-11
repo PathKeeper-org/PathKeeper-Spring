@@ -46,9 +46,10 @@ public class LocationLog {
     private LocalDateTime createdAt; // 서버 DB에 인서트 된 시간
 
     @Builder
-    public LocationLog(User user, Point location, LocalDateTime recordedAt) {
+    public LocationLog(User user, Point location, int batteryLevel, LocalDateTime recordedAt) {
         this.user = user;
         this.location = location;
+        this.batteryLevel = batteryLevel;
         this.recordedAt = recordedAt;
     }
 }

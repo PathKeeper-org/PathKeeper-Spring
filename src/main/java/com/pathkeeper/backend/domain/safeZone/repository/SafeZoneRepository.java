@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface SafeZoneRepository extends JpaRepository<SafeZone, Long> {
     void deleteByUser(User user);
 
-    // [중요] ST_Buffer를 사용해 경로를 다각형으로 확장하여 저장
+    // ST_Buffer를 사용해 경로를 다각형으로 확장하여 저장
     @Modifying
     @Query(value = """
         INSERT INTO safe_zone (user_id, polygon, created_at, updated_at)
@@ -29,11 +29,20 @@ public interface SafeZoneRepository extends JpaRepository<SafeZone, Long> {
                                 @Param("radius") double radius
     );
 
-    // [중요] 저장된 Polygon 데이터를 프론트엔드용 GeoJSON으로 변환하여 조회
+    // 저장된 Polygon 데이터를 프론트엔드용 GeoJSON으로 변환하여 조회
     @Query(value = """
         SELECT safe_zone_id AS id, ST_AsGeoJSON(polygon) AS geoJson
-        FROM safe_zone 
+        FROM safe_zone
         WHERE user_id = :userId
     """, nativeQuery = true)
     Optional<SafeZoneProjection> findSafeZoneInfoByUserId(@Param("userId") Long userId);
+
+    @Query(value = """
+        SELECT CASE WHEN ST_Contains(polygon, ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)) THEN 1 ELSE 0 END
+        FROM safe_zone
+        WHERE user_id = :userId
+    """, nativeQuery = true)
+    Optional<Integer> isPointInSafeZone(@Param("userId") Long userId,
+                                        @Param("lat") double lat,
+                                        @Param("lng") double lng);
 }
