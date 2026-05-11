@@ -27,6 +27,7 @@ public class AuthController {
     private final AuthService authService;
     private final TokenProvider tokenProvider;
     public static final String BEARER = "Bearer ";
+    public static final String REFRESH = "refresh_token";
 
     @Operation(summary = "이메일 회원가입", description = "새로운 유저(보호자/피보호자)를 등록합니다.")
     @PostMapping("/signup")
@@ -45,7 +46,7 @@ public class AuthController {
         // Refresh Token을 쿠키로 생성
         ResponseCookie cookie
                 = CookieUtil.createCookie(
-                        "refresh_token",
+                        REFRESH,
                         tokens.refreshToken(),
                         tokenProvider.getRefreshTokenValiditySeconds()
         );
@@ -60,7 +61,7 @@ public class AuthController {
     @PostMapping("/api/auth/reissue")
     public ResponseEntity<ReissueResponse> reissue(
             @Parameter(hidden = true)
-            @CookieValue(value = "refresh_token", required = false) String refreshToken) {
+            @CookieValue(value = REFRESH, required = false) String refreshToken) {
 
         if (refreshToken == null) {
             throw new BusinessException(ErrorCode.MISSING_REFRESH_TOKEN);
@@ -71,7 +72,7 @@ public class AuthController {
 
         // 2. 새로운 Refresh Token으로 쿠키 생성
         ResponseCookie cookie
-                = CookieUtil.createCookie("refresh_token", tokens.refreshToken(), tokenProvider.getRefreshTokenValiditySeconds());
+                = CookieUtil.createCookie(REFRESH, tokens.refreshToken(), tokenProvider.getRefreshTokenValiditySeconds());
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
@@ -83,7 +84,7 @@ public class AuthController {
     public ResponseEntity<Void> logout(
             HttpServletRequest request,
             @Parameter(hidden = true)
-            @CookieValue(value = "refresh_token", required = false) String refreshToken) {
+            @CookieValue(value = REFRESH, required = false) String refreshToken) {
         String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
         String accessToken = null;
 
@@ -94,7 +95,7 @@ public class AuthController {
         authService.logout(accessToken, refreshToken);
 
         ResponseCookie deleteCookie
-                = CookieUtil.emptyCookie("refresh_token");
+                = CookieUtil.emptyCookie(REFRESH);
 
         return ResponseEntity.noContent()
                 .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())

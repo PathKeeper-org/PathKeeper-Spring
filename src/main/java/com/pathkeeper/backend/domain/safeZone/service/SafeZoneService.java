@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -60,9 +61,26 @@ public class SafeZoneService {
     }
 
     private String convertToWktLineString(List<SafeZoneCoordinate> path) {
-        String points = path.stream()
+        /*String points = path.stream()
                 .map(p -> p.longitude() + " " + p.latitude()) // 경도 위도 순서
                 .collect(Collectors.joining(", "));
-        return "LINESTRING(" + points + ")";
+        return "LINESTRING(" + points + ")";*/
+        List<String> lines = new ArrayList<>();
+
+        for (int i = 0; i < path.size(); i++) {
+            for (int j = i + 1; j < path.size(); j++) {
+                SafeZoneCoordinate p1 = path.get(i);
+                SafeZoneCoordinate p2 = path.get(j);
+
+                String line = "("
+                        + p1.longitude() + " " + p1.latitude() + ", "
+                        + p2.longitude() + " " + p2.latitude()
+                        + ")";
+
+                lines.add(line);
+            }
+        }
+
+        return "MULTILINESTRING(" + String.join(", ", lines) + ")";
     }
 }
