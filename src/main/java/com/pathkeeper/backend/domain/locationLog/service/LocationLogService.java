@@ -1,6 +1,7 @@
 package com.pathkeeper.backend.domain.locationLog.service;
 
 import com.pathkeeper.backend.domain.locationLog.LocationLog;
+import com.pathkeeper.backend.domain.locationLog.dto.LatestLocationInfo;
 import com.pathkeeper.backend.domain.locationLog.dto.LocationSaveCommand;
 import com.pathkeeper.backend.domain.locationLog.dto.LocationSaveInfo;
 import com.pathkeeper.backend.domain.locationLog.repository.LocationLogRepository;
@@ -47,6 +48,25 @@ public class LocationLogService {
 
         boolean isAlertTriggered = isOutsideSafeZone(user.getId(), command);
         return new LocationSaveInfo(isAlertTriggered);
+    }
+
+    public LatestLocationInfo getLatestLocation(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        User partner = Optional.ofNullable(user.getPartner())
+                .orElseThrow(() -> new BusinessException(ErrorCode.PARTNER_NOT_LINKED));
+
+        LocationLog locationLog = locationLogRepository.findTopByUserOrderByRecordedAtDesc(partner)
+                .orElseThrow(() -> new BusinessException(ErrorCode.LOCATION_NOT_FOUND));
+
+        Point point = locationLog.getLocation();
+        return new LatestLocationInfo(
+                point.getY(),
+                point.getX(),
+                locationLog.getBatteryLevel(),
+                locationLog.getCreatedAt()
+        );
     }
 
     private boolean isOutsideSafeZone(Long userId, LocationSaveCommand command) {

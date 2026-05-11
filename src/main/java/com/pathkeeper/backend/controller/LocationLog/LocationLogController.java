@@ -3,6 +3,7 @@ package com.pathkeeper.backend.controller.LocationLog;
 import com.pathkeeper.backend.controller.LocationLog.dto.LatestLocationResponse;
 import com.pathkeeper.backend.controller.LocationLog.dto.LocationSaveRequest;
 import com.pathkeeper.backend.controller.LocationLog.dto.LocationSaveResponse;
+import com.pathkeeper.backend.domain.locationLog.dto.LatestLocationInfo;
 import com.pathkeeper.backend.domain.locationLog.dto.LocationSaveCommand;
 import com.pathkeeper.backend.domain.locationLog.dto.LocationSaveInfo;
 import com.pathkeeper.backend.domain.locationLog.service.LocationLogService;
@@ -38,8 +39,12 @@ public class LocationLogController {
 
     @Operation(summary = "파트너 실시간 위치 조회 (보호자용)", description = "피보호자의 가장 최근 위치를 조회합니다.")
     @GetMapping("/latest")
-    public ResponseEntity<LatestLocationResponse> getLatestLocation() {
-
-        return ResponseEntity.ok(null); // 임시 반환값
+    public ResponseEntity<LatestLocationResponse> getLatestLocation(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        LatestLocationInfo info = locationLogService.getLatestLocation(userDetails.getEmail());
+        return ResponseEntity.ok(new LatestLocationResponse(
+                info.lat(), info.lng(), info.batteryLevel(), info.lastUpdated()
+        ));
     }
 }
