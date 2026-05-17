@@ -29,6 +29,7 @@ public class LocationLogService {
     private final LocationLogRepository locationLogRepository;
     private final UserRepository userRepository;
     private final SafeZoneRepository safeZoneRepository;
+    private final GpsAnomalyFilter gpsAnomalyFilter;
 
     private static final GeometryFactory GEOMETRY_FACTORY = new GeometryFactory(new PrecisionModel(), 4326);
 
@@ -36,6 +37,9 @@ public class LocationLogService {
     public LocationSaveInfo saveLocation(String email, LocationSaveCommand command) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        validate(command.lat(), command.lng());
+        gpsAnomalyFilter.check(user, command.lat(), command.lng());
 
         Point point = GEOMETRY_FACTORY.createPoint(new Coordinate(command.lng(), command.lat()));
 
@@ -74,5 +78,14 @@ public class LocationLogService {
                 userId, command.lat(), command.lng()
         );
         return result.isPresent() && result.get() == 0;
+    }
+
+    private void validate(Double lat, Double lng) {
+        if (lat == null || lng == null) {
+            throw new BusinessException(ErrorCode.INVALID_GPS_COORDINATE);
+        }
+        if (lat < -90.0 || lat > 90.0 || lng < -180.0 || lng > 180.0) {
+            throw new BusinessException(ErrorCode.INVALID_GPS_COORDINATE);
+        }
     }
 }

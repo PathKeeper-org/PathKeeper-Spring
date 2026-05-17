@@ -25,6 +25,8 @@ public enum ErrorCode {
     PARTNER_NOT_LINKED(HttpStatus.NOT_FOUND, "U004", "연결된 파트너가 없습니다."),
 
     LOCATION_NOT_FOUND(HttpStatus.NOT_FOUND, "L001", "위치 기록이 없습니다."),
+    INVALID_GPS_COORDINATE(HttpStatus.BAD_REQUEST, "G001", "유효하지 않은 GPS 좌표입니다."),
+    GPS_SPEED_ANOMALY(HttpStatus.BAD_REQUEST, "G002", "비정상적인 GPS 이동이 감지되어 위치를 저장하지 않았습니다."),
 
     SAFE_ZONE_NOT_FOUND(HttpStatus.NOT_FOUND, "SZ001", "안심존이 존재하지 않습니다."),
 
