@@ -35,3 +35,17 @@ out/
 
 ### VS Code ###
 .vscode/
+
+# 환경변수
+.env
+.env.*
+!.env.example
+
+# 비밀 정보
+secrets/
+*.pem
+*.key
+
+# Docker 볼륨
+data/
+volumes/

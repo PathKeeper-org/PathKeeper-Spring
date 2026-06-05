@@ -1,0 +1,19 @@
+dependencies {
+    implementation project(':common')
+
+    // Redis Stream
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // JPA로 Bulk Insert
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'org.postgresql:postgresql'
+
+    // PostGIS Hibernate 매핑
+    implementation 'org.hibernate.orm:hibernate-spatial'
+}
+
+bootJar {
+    enabled = true
+    archiveFileName = 'path-persister.jar'
+}
+jar { enabled = false }

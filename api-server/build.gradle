@@ -1,0 +1,33 @@
+dependencies {
+    implementation project(':common')
+
+    // Web
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // Security + JWT
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+    // Redis (JWT 토큰 관리용) - 추가
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // Kafka (Producer)
+    implementation 'org.springframework.kafka:spring-kafka'
+
+    // 안심존 CRUD를 위한 JPA + PostgreSQL
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.hibernate.orm:hibernate-spatial'
+    runtimeOnly 'org.postgresql:postgresql'
+
+    // Swagger
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.4'
+}
+
+bootJar {
+    enabled = true
+    archiveFileName = 'api-server.jar'
+}
+jar { enabled = false }

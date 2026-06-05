@@ -1,0 +1,71 @@
+spring:
+  application:
+    name: api-server
+
+  profiles:
+    active: local
+
+  # 안심존 CRUD를 위한 DB
+  datasource:
+    url: jdbc:postgresql://localhost:5433/${DB_NAME}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+
+    # Redis 추가
+    data:
+      redis:
+        host: ${REDIS_HOST:localhost}
+        port: 6379
+        password: ${REDIS_PASSWORD:}
+        lettuce:
+          pool:
+            max-active: 20
+            max-idle: 10
+
+  # Kafka Producer
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: 1
+      compression-type: lz4
+      batch-size: 16384
+      properties:
+        linger.ms: 10
+
+# JWT (api-server만)
+jwt:
+  secret: ${SECRET_KEY}
+  access-token-validity-in-milliseconds: 1800000
+  refresh-token-validity-in-milliseconds: 1209600000
+
+server:
+  port: 8081
+  tomcat:
+    threads:
+      max: 400
+      min-spare: 50
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus, info
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+logging:
+  level:
+    com.pathkeeper.api: INFO
+    org.hibernate.SQL: WARN

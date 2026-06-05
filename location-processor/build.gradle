@@ -1,0 +1,20 @@
+dependencies {
+    implementation project(':common')
+
+    // Kafka Consumer
+    implementation 'org.springframework.kafka:spring-kafka'
+
+    // Redis (Bounding Box, State Machine, Stream)
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // PostgreSQL with PostGIS (ST_Contains 호출)
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.hibernate.orm:hibernate-spatial'
+    runtimeOnly 'org.postgresql:postgresql'
+}
+
+bootJar {
+    enabled = true
+    archiveFileName = 'location-processor.jar'
+}
+jar { enabled = false }
