@@ -5,11 +5,7 @@ spring:
   profiles:
     active: local
 
-  # JPA Bulk Insert용 DB
   datasource:
-    url: jdbc:postgresql://localhost:5433/${DB_NAME}?reWriteBatchedInserts=true
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
@@ -25,12 +21,8 @@ spring:
         order_inserts: true
     show-sql: false
 
-  # Redis Stream
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: 6379
-      password: ${REDIS_PASSWORD}
       lettuce:
         pool:
           max-active: 10

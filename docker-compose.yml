@@ -8,7 +8,7 @@ services:
       dockerfile: api-server/Dockerfile
     image: pathkeeper/api-server:latest
     environment:
-      SPRING_PROFILES_ACTIVE: docker
+      SPRING_PROFILES_ACTIVE: prod
       KAFKA_BOOTSTRAP: kafka:9092
       DB_HOST: postgres
       DB_PORT: 5432
@@ -42,7 +42,7 @@ services:
       dockerfile: location-processor/Dockerfile
     image: pathkeeper/location-processor:latest
     environment:
-      SPRING_PROFILES_ACTIVE: docker
+      SPRING_PROFILES_ACTIVE: prod
       KAFKA_BOOTSTRAP: kafka:9092
       DB_HOST: postgres
       DB_PORT: 5432
@@ -73,7 +73,7 @@ services:
       dockerfile: alert-sender/Dockerfile
     image: pathkeeper/alert-sender:latest
     environment:
-      SPRING_PROFILES_ACTIVE: docker
+      SPRING_PROFILES_ACTIVE: prod
       KAFKA_BOOTSTRAP: kafka:9092
       DB_HOST: postgres
       DB_PORT: 5432
@@ -104,7 +104,7 @@ services:
       dockerfile: path-persister/Dockerfile
     image: pathkeeper/path-persister:latest
     environment:
-      SPRING_PROFILES_ACTIVE: docker
+      SPRING_PROFILES_ACTIVE: prod
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: ${DB_NAME:-pathkeeper_db}
