@@ -10,6 +10,7 @@ spring:
       ddl-auto: validate
     properties:
       hibernate:
+        dialect: org.hibernate.spatial.dialect.postgis.PostgisDialect
         format_sql: false
     open-in-view: false
 
@@ -27,12 +28,20 @@ server:
     threads:
       max: 400
       min-spare: 50
+    accept-count: 200
+    connection-timeout: 3000
 
 management:
   endpoints:
     web:
       exposure:
-        include: health, prometheus, info
+        include: health, info, prometheus, metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    tags:
+      application: ${spring.application.name}
   prometheus:
     metrics:
       export:
@@ -41,4 +50,5 @@ management:
 logging:
   level:
     com.pathkeeper.api: INFO
+    org.springframework.kafka: WARN
     org.hibernate.SQL: WARN
