@@ -27,6 +27,7 @@ public enum ErrorCode {
     LOCATION_NOT_FOUND(HttpStatus.NOT_FOUND, "L001", "위치 기록이 없습니다."),
     INVALID_GPS_COORDINATE(HttpStatus.BAD_REQUEST, "G001", "유효하지 않은 GPS 좌표입니다."),
     GPS_SPEED_ANOMALY(HttpStatus.BAD_REQUEST, "G002", "비정상적인 GPS 이동이 감지되어 위치를 저장하지 않았습니다."),
+    INVALID_RECORDED_AT(HttpStatus.BAD_REQUEST, "G003", "측정 시각이 유효하지 않습니다. (미래 시각이거나 1시간 이상 경과)"),
 
     SAFE_ZONE_NOT_FOUND(HttpStatus.NOT_FOUND, "SZ001", "안심존이 존재하지 않습니다."),
 

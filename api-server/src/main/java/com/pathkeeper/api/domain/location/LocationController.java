@@ -1,6 +1,7 @@
 package com.pathkeeper.api.domain.location;
 
 import com.pathkeeper.api.domain.location.dto.LocationRequest;
+import com.pathkeeper.api.global.security.details.CustomUserDetails;
 import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -27,10 +28,10 @@ public class LocationController {
     @SecurityRequirement(name = "jwtAuth")
     @Timed(value = "api.location.receive", description = "위치 수신 처리 시간")
     public ResponseEntity<Void> receive(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody LocationRequest request) {
 
-        locationService.receiveLocation(userId, request);
+        locationService.receiveLocation(userDetails.getEmail(), request);
 
         return ResponseEntity.accepted().build();
     }
