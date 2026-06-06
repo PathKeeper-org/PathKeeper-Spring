@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Safe Zone", description = "안심존 설정 및 관리 API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/safe-zones")
+@RequestMapping("/api/v1/safe-zones")
 public class SafeZoneController {
     private final SafeZoneService safeZoneService;
 

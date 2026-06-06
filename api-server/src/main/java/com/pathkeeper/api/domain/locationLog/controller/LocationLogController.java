@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Location", description = "위치 기록 및 조회 API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/locations")
+@RequestMapping("/api/v1/locations")
 public class LocationLogController {
 
     private final LocationLogService locationLogService;

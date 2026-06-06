@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Authentication", description = "회원가입, 로그인, 파트너 연결 API")
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
@@ -58,7 +58,7 @@ public class AuthController {
     }
 
     @Operation(summary = "토큰 재발급", description = "쿠키의 Refresh Token을 이용해 새로운 토큰 쌍을 발급 받습니다.")
-    @PostMapping("/api/auth/reissue")
+    @PostMapping("/api/v1/auth/reissue")
     public ResponseEntity<ReissueResponse> reissue(
             @Parameter(hidden = true)
             @CookieValue(value = REFRESH, required = false) String refreshToken) {

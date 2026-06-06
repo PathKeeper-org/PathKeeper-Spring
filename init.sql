@@ -109,6 +109,9 @@ CREATE TABLE IF NOT EXISTS location_logs_2026_08 PARTITION OF location_logs
 CREATE INDEX idx_location_logs_user_recorded
     ON location_logs(user_id, recorded_at DESC);
 
+-- Hibernate SEQUENCE 전략의 allocationSize(1000)와 일치시켜 배치 INSERT 최적화
+ALTER SEQUENCE location_logs_location_log_id_seq INCREMENT BY 1000;
+
 -- =============================================================================
 -- 5. departure_events : 이탈 이벤트 이력
 -- =============================================================================

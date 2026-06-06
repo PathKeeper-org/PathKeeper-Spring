@@ -11,17 +11,10 @@ spring:
     properties:
       hibernate:
         format_sql: false
+    open-in-view: false
 
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      acks: 1
-      compression-type: lz4
-      batch-size: 16384
-      properties:
-        linger.ms: 10
 
 jwt:
   secret: ${SECRET_KEY}

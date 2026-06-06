@@ -22,9 +22,6 @@ public class SwaggerConfig {
         // JWT 보안 설정 이름
         String jwtSchemeName = "jwtAuth";
 
-        // API 호출하려면 jwtAuth라는 보안 통과해야함
-        SecurityRequirement securityRequirement = new SecurityRequirement().addList(jwtSchemeName);
-
         // 보안 형식 세팅
         SecurityScheme securityScheme = new SecurityScheme()
                 .name(jwtSchemeName)
@@ -35,6 +32,9 @@ public class SwaggerConfig {
         // jwtAuth라는 보안 이름과 위에서 세팅한 보안 형식 연결
         Components components = new Components()
                .addSecuritySchemes(jwtSchemeName, securityScheme);
+
+        // API 호출하려면 jwtAuth라는 보안 통과해야함
+        SecurityRequirement securityRequirement = new SecurityRequirement().addList(jwtSchemeName);
 
         return new OpenAPI()
                 .info(info)

@@ -21,7 +21,12 @@ import java.time.LocalDateTime;
 public class LocationLog {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "location_log_seq")
+    @SequenceGenerator(
+            name = "location_log_seq",
+            sequenceName = "location_logs_location_log_id_seq",  // BIGSERIAL이 생성한 시퀀스명
+            allocationSize = 1000  // batch_size와 동일하게 설정하여 ID를 미리 선점
+    )
     @Column(name = "location_log_id")
     private Long id;
 
