@@ -5,28 +5,18 @@ spring:
   profiles:
     active: local
 
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    properties:
-      hibernate:
-        format_sql: false
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 3
 
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
-    consumer:
-      group-id: alert-sender-group
-      enable-auto-commit: false
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "com.pathkeeper.common.dto"
-    listener:
-      ack-mode: manual
-      concurrency: 2
 
 fcm:
-  credentials-path: ${FCM_CREDENTIALS:./fcm-credentials.json}
+  mock: ${FCM_MOCK:true}
+  credentials-path: ${FCM_CREDENTIALS:/secrets/firebase-credentials.json}
 
 server:
   port: 8083
@@ -35,7 +25,13 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, prometheus, info
+        include: health, info, prometheus, metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    tags:
+      application: ${spring.application.name}
   prometheus:
     metrics:
       export:
@@ -44,3 +40,5 @@ management:
 logging:
   level:
     com.pathkeeper.alert: INFO
+    com.google.firebase: WARN
+    org.springframework.kafka: WARN
