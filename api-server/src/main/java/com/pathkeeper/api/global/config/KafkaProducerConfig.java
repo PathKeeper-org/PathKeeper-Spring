@@ -1,6 +1,5 @@
 package com.pathkeeper.api.global.config;
 
-import com.fasterxml.jackson.databind.JsonSerializer;
 import com.pathkeeper.common.dto.LocationMessage;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -10,8 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
-import org.springframework.kafka.support.serializer.JacksonJsonSerializer;
-//import org.springframework.kafka.support.serializer.JsonSerializer;
+import org.springframework.kafka.support.serializer.JsonSerializer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,10 +35,6 @@ public class KafkaProducerConfig {
         // 기본 연결
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
 
-        // 직렬화
-        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-
         // 신뢰성 설정
         config.put(ProducerConfig.ACKS_CONFIG, "1");
         config.put(ProducerConfig.RETRIES_CONFIG, 3);
@@ -49,15 +43,20 @@ public class KafkaProducerConfig {
 
         // 성능 최적화
         config.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "lz4");
-        config.put(ProducerConfig.BATCH_SIZE_CONFIG, 16384);   // 16KB
-        config.put(ProducerConfig.LINGER_MS_CONFIG, 10);        // 10ms 모음
-        config.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 33554432);  // 32MB
+        config.put(ProducerConfig.BATCH_SIZE_CONFIG, 16384);
+        config.put(ProducerConfig.LINGER_MS_CONFIG, 10);
+        config.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 33554432);
 
         // 타임아웃
         config.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 5000);
         config.put(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, 30000);
 
-        return new DefaultKafkaProducerFactory<>(config);
+        // Serializer를 인스턴스로 직접 주입 (class 참조 방식 deprecated 대응)
+        return new DefaultKafkaProducerFactory<>(
+                config,
+                new StringSerializer(),
+                new JsonSerializer<>()
+        );
     }
 
     /**
