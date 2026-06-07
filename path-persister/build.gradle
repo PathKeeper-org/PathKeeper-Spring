@@ -1,15 +1,16 @@
 dependencies {
     implementation project(':common')
 
+    // JPA + Hibernate Spatial (PostGIS Point 매핑)
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.hibernate.orm:hibernate-spatial'
+    runtimeOnly 'org.postgresql:postgresql'
+
     // Redis Stream
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
-    // JPA로 Bulk Insert
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    runtimeOnly 'org.postgresql:postgresql'
-
-    // PostGIS Hibernate 매핑
-    implementation 'org.hibernate.orm:hibernate-spatial'
+    // Web (헬스체크, 메트릭)
+    implementation 'org.springframework.boot:spring-boot-starter-web'
 }
 
 bootJar {

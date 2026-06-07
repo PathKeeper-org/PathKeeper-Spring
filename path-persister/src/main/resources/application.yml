@@ -9,7 +9,10 @@ spring:
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
-      minimum-idle: 5
+      minimum-idle: 3
+      connection-timeout: 5000
+      idle-timeout: 600000
+      max-lifetime: 1800000
 
   jpa:
     hibernate:
@@ -19,13 +22,22 @@ spring:
         jdbc:
           batch_size: 1000
         order_inserts: true
+        dialect: org.hibernate.spatial.dialect.postgis.PostgisDialect
     show-sql: false
+    open-in-view: false
 
   data:
     redis:
       lettuce:
         pool:
           max-active: 10
+          max-idle: 5
+          min-idle: 2
+
+persister:
+  batch:
+    interval-ms: 10000
+    size: 1000
 
 server:
   port: 8084
@@ -34,7 +46,13 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, prometheus, info
+        include: health, info, prometheus, metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    tags:
+      application: ${spring.application.name}
   prometheus:
     metrics:
       export:
@@ -43,3 +61,4 @@ management:
 logging:
   level:
     com.pathkeeper.persister: INFO
+    org.hibernate.SQL: WARN
