@@ -84,7 +84,11 @@ public class LocationLogRepository {
         });
 
         long elapsed = System.currentTimeMillis() - startTime;
-        int totalInserted = (int) java.util.Arrays.stream(result).filter(r -> r > 0).count();
+        // Statement.SUCCESS_NO_INFO(-2): reWriteBatchedInserts=true 시 JDBC가 반환하는 정상 성공 코드
+        // Statement.EXECUTE_FAILED(-3): 실제 실패. -3이 아닌 모든 결과를 성공으로 간주.
+        int totalInserted = (int) java.util.Arrays.stream(result)
+                .filter(r -> r != java.sql.Statement.EXECUTE_FAILED)
+                .count();
 
         log.info("Bulk insert 완료: count={}, elapsed={}ms, tps={}",
                 totalInserted, elapsed,

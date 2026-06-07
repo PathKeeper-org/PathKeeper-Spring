@@ -75,13 +75,14 @@ public class AlertConsumer {
             ack.acknowledge();
 
         } catch (FcmException e) {
-            // 재시도 가능 → 멱등성 키 해제 (재시도 시 다시 처리 가능하도록)
-            idempotencyGuard.release(topic, partition, offset);
-            log.error("FCM 전송 실패 (재시도 예정): userId={}", event.userId(), e);
-            throw e;   // ErrorHandler가 재시도/DLQ 처리
+            // FCM 재시도 가능 실패 → 멱등성 키는 유지 (DLQ로 이동)
+            // 키를 해제하면 재시도 시 departure_events 중복 삽입이 발생하므로 유지
+            log.error("FCM 전송 실패 (DLQ 이동): userId={}", event.userId(), e);
+            ack.acknowledge();
+            meterRegistry.counter("fcm.failed.retryable").increment();
 
         } catch (Exception e) {
-            // 영구 실패 → 멱등성 키 유지 (재시도 무의미)
+            // 영구 실패 → 멱등성 키 유지
             log.error("처리 실패 (영구): userId={}", event.userId(), e);
             ack.acknowledge();
             meterRegistry.counter("alert.failed.permanent").increment();
@@ -89,7 +90,18 @@ public class AlertConsumer {
     }
 
     private void processAlert(AlertEvent event) {
-        // === 2단계: DepartureEvent 기록 ===
+        // === 2단계: 보호자 조회 (FCM 전송 전 확인, DB 기록보다 먼저 수행) ===
+        List<GuardianInfo> guardians = guardianResolver.findGuardiansOf(event.userId());
+
+        if (guardians.isEmpty()) {
+            log.warn("보호자 없음: protegeId={}", event.userId());
+            meterRegistry.counter("alert.no.guardian").increment();
+            return;
+        }
+
+        // === 3단계: DepartureEvent 기록 ===
+        // FCM 재시도 시 중복 삽입 방지: 보호자 조회 후에 기록하고,
+        // DB 삽입은 멱등성 키가 보장하는 범위 안에서 한 번만 실행됨
         Long departureEventId = null;
         if (event.type() == AlertEvent.AlertType.DEPARTURE) {
             departureEventId = departureEventRepository.insertDeparture(
@@ -102,17 +114,8 @@ public class AlertConsumer {
             log.debug("DepartureEvent 기록: id={}", departureEventId);
         }
 
-        // === 3단계: 보호자 조회 ===
-        List<GuardianInfo> guardians = guardianResolver.findGuardiansOf(event.userId());
-
-        if (guardians.isEmpty()) {
-            log.warn("보호자 없음: protegeId={}", event.userId());
-            meterRegistry.counter("alert.no.guardian").increment();
-            return;
-        }
-
         // === 4단계: 각 보호자에게 FCM 전송 ===
-        String protegeName = "피보호자";  // TODO: 실제 이름 조회
+        String protegeName = guardianResolver.findProtegeName(event.userId());
         NotificationBuilder.Notification notification =
                 notificationBuilder.build(event, protegeName);
 

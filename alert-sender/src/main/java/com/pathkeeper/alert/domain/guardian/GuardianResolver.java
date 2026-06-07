@@ -83,7 +83,8 @@ public class GuardianResolver {
         String key = CACHE_KEY_PREFIX + protegeId;
         List<String> rawList = redis.opsForList().range(key, 0, -1);
 
-        if (rawList == null) {
+        // null 또는 빈 리스트 = 캐시 미스 (Redis LRANGE는 키 없으면 빈 리스트 반환)
+        if (rawList == null || rawList.isEmpty()) {
             return null;
         }
 
@@ -129,8 +130,24 @@ public class GuardianResolver {
         redis.expire(key, CACHE_TTL);
     }
 
+    /**
+     * 피보호자 이름 조회. 조회 실패 시 "피보호자" 반환.
+     */
+    public String findProtegeName(Long protegeId) {
+        try {
+            String name = jdbcTemplate.queryForObject(
+                    "SELECT name FROM users WHERE user_id = ?",
+                    String.class,
+                    protegeId
+            );
+            return name != null ? name : "피보호자";
+        } catch (Exception e) {
+            log.warn("피보호자 이름 조회 실패: protegeId={}", protegeId, e);
+            return "피보호자";
+        }
+    }
+
     private void invalidateRelatedCache(Long guardianId) {
-        // guardianId에 연결된 protegeId 모두 조회 후 캐시 삭제
         List<Long> protegeIds = jdbcTemplate.queryForList(
                 "SELECT protege_id FROM guardian_relations WHERE guardian_id = ?",
                 Long.class,
