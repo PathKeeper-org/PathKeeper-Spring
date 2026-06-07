@@ -71,39 +71,28 @@ services:
       kafka:
         condition: service_healthy
     entrypoint: ["/bin/bash", "-c"]
-    command: |
-      "
-      echo 'Kafka 토픽 생성 시작...'
-      
-      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists \
-        --topic location-events \
-        --partitions 30 \
-        --replication-factor 1 \
-        --config retention.ms=86400000
-      
-      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists \
-        --topic location-events.DLQ \
-        --partitions 3 \
-        --replication-factor 1 \
-        --config retention.ms=604800000
-      
-      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists \
-        --topic alert-events \
-        --partitions 10 \
-        --replication-factor 1 \
-        --config retention.ms=86400000
-      
-      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists \
-        --topic alert-events.DLQ \
-        --partitions 3 \
-        --replication-factor 1 \
-        --config retention.ms=604800000
-      
-      echo '생성된 토픽 목록:'
-      kafka-topics --bootstrap-server kafka:9092 --list
-      
-      echo 'Kafka 초기화 완료'
-      "
+    command:
+      - |
+        echo "Kafka 준비 대기..."
+        until kafka-broker-api-versions --bootstrap-server kafka:9092 > /dev/null 2>&1; do
+          echo "Kafka 아직 준비 중... 5초 대기"
+          sleep 5
+        done
+        
+        echo "Kafka 준비 완료. 토픽 생성 시작..."
+        
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic location-events --partitions 30 --replication-factor 1 --config retention.ms=86400000
+        
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic location-events.DLQ --partitions 3 --replication-factor 1 --config retention.ms=604800000
+        
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic alert-events --partitions 10 --replication-factor 1 --config retention.ms=86400000
+        
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic alert-events.DLQ --partitions 3 --replication-factor 1 --config retention.ms=604800000
+        
+        echo "생성된 토픽 목록:"
+        kafka-topics --bootstrap-server kafka:9092 --list
+        
+        echo "Kafka 초기화 완료"
     networks:
       - pathkeeper-net
 

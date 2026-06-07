@@ -1,12 +1,10 @@
 package com.pathkeeper.api.domain.safezone.controller;
 
-import com.pathkeeper.api.domain.safezone.dto.SafeZoneActiveResponse;
 import com.pathkeeper.api.domain.safezone.dto.SafeZoneCreateRequest;
 import com.pathkeeper.api.domain.safezone.dto.SafeZoneResponse;
 import com.pathkeeper.api.domain.safezone.service.SafeZoneService;
 import com.pathkeeper.api.global.security.details.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -35,12 +33,5 @@ public class SafeZoneController {
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(safeZoneService.findSafeZone(userDetails.getEmail()));
-    }
-
-    @Operation(summary = "안심존 활성화/비활성화", description = "특정 상황에서 안심존 이탈 알림을 잠시 꺼둡니다.")
-    //@PatchMapping("/active")
-    public ResponseEntity<SafeZoneActiveResponse> toggleSafeZoneActive(
-            @RequestParam @Parameter(description = "변경할 활성화 상태 (true/false)") boolean isActive) {
-        return ResponseEntity.ok(null); // 임시 반환
     }
 }

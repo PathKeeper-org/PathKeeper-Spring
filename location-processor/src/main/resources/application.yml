@@ -1,3 +1,6 @@
+server:
+  port: 8082
+
 spring:
   application:
     name: location-processor
@@ -24,9 +27,6 @@ spring:
           max-active: 50
           max-idle: 20
           min-idle: 5
-
-server:
-  port: 8082
 
 management:
   endpoints:

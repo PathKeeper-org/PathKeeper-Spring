@@ -45,20 +45,7 @@ public class GuardianRelation {
 
     @Builder
     public GuardianRelation(User guardian, User protege) {
-        validate(guardian, protege);
         this.guardian = guardian;
         this.protege = protege;
-    }
-
-    private void validate(User guardian, User protege) {
-        if (guardian.equals(protege)) {
-            throw new IllegalArgumentException("보호자와 피보호자는 같을 수 없습니다");
-        }
-        if (!guardian.isGuardian()) {
-            throw new IllegalArgumentException("보호자 역할이 아닙니다");
-        }
-        if (!protege.isProtege()) {
-            throw new IllegalArgumentException("피보호자 역할이 아닙니다");
-        }
     }
 }

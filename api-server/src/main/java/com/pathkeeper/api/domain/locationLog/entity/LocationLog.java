@@ -28,14 +28,11 @@ public class LocationLog {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // PostGIS Point 타입을 사용하여 위도/경도를 하나의 점으로 관리
-    @Column(columnDefinition = "geometry(Point, 4326)", nullable = false)
+    @Column(columnDefinition = "geography(Point, 4326)", nullable = false)
     private Point location;
 
-    // 배터리 잔량
-    // 피보호자의 GPS가 갑자기 끊겼을 때, 배터리 때문인지 여부 파악 위함
-    @Column(nullable = false)
-    private int batteryLevel;
+    @Column(name = "battery_level")
+    private Integer batteryLevel;
 
     @Column(nullable = false)
     private LocalDateTime recordedAt; // 안드로이드 단말기에서 실제로 위치를 측정한 시간
@@ -46,7 +43,7 @@ public class LocationLog {
     private LocalDateTime createdAt; // 서버 DB에 인서트 된 시간
 
     @Builder
-    public LocationLog(User user, Point location, int batteryLevel, LocalDateTime recordedAt) {
+    public LocationLog(User user, Point location, Integer batteryLevel, LocalDateTime recordedAt) {
         this.user = user;
         this.location = location;
         this.batteryLevel = batteryLevel;

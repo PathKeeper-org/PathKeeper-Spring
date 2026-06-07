@@ -13,8 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +24,7 @@ public class SafeZoneService {
     private final SafeZoneRepository safeZoneRepository;
     private final UserRepository userRepository;
 
-    private static final Long RADIUS = 50L;
+    private static final double RADIUS = 50.0; // 경로로부터 확장할 버퍼 반경 (미터)
 
     @Transactional
     public SafeZoneResponse generateAndSaveSafeZone(String email, SafeZoneCreateRequest request) {
@@ -34,8 +34,7 @@ public class SafeZoneService {
         String wkt = convertToWktLineString(request.path());
 
         safeZoneRepository.deleteByUser(user);
-
-        safeZoneRepository.saveSafeZoneWithBuffer(user.getId(), wkt, RADIUS);
+        safeZoneRepository.saveSafeZoneWithBuffer(user.getId(), request.name(), wkt, RADIUS);
 
         SafeZoneProjection projection = safeZoneRepository.findSafeZoneInfoByUserId(user.getId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.SAFE_ZONE_NOT_FOUND));
@@ -52,23 +51,12 @@ public class SafeZoneService {
                 .orElse(new SafeZoneResponse(null, null));
     }
 
+    // 좌표 배열을 순차 연결하는 LINESTRING WKT로 변환
+    // (WGS84: ST_GeomFromText의 좌표 순서는 경도(X) 위도(Y))
     private String convertToWktLineString(List<SafeZoneCoordinate> path) {
-        List<String> lines = new ArrayList<>();
-
-        for (int i = 0; i < path.size(); i++) {
-            for (int j = i + 1; j < path.size(); j++) {
-                SafeZoneCoordinate p1 = path.get(i);
-                SafeZoneCoordinate p2 = path.get(j);
-
-                String line = "("
-                        + p1.longitude() + " " + p1.latitude() + ", "
-                        + p2.longitude() + " " + p2.latitude()
-                        + ")";
-
-                lines.add(line);
-            }
-        }
-
-        return "MULTILINESTRING(" + String.join(", ", lines) + ")";
+        String points = path.stream()
+                .map(c -> c.longitude() + " " + c.latitude())
+                .collect(Collectors.joining(", "));
+        return "LINESTRING(" + points + ")";
     }
 }

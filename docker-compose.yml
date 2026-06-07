@@ -21,16 +21,21 @@ services:
       SECRET_KEY: ${SECRET_KEY}
       JAVA_OPTS: "-XX:+UseG1GC -Xmx400m -Xms200m"
     deploy:
-      replicas: 3
+    # replicas: 3
+      replicas: 1
       resources:
+#        limits:
+#          cpus: '1'
+#          memory: 512M
+#        reservations:
+#          cpus: '0.5'
+#          memory: 256M
         limits:
-          cpus: '1'
-          memory: 512M
-        reservations:
           cpus: '0.5'
-          memory: 256M
+          memory: 512M
     ports:
-      - "8081-8083:8081"
+#      - "8081-8083:8081"
+      - "8081:8081"
     restart: unless-stopped
     networks:
       - pathkeeper-net
@@ -52,16 +57,20 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD}
-      JAVA_OPTS: "-XX:+UseG1GC -Xmx800m -Xms400m"
+      JAVA_OPTS: "-XX:+UseG1GC -Xmx512m -Xms256m"
     deploy:
-      replicas: 10
+    # replicas: 10
+      replicas: 2
       resources:
+#        limits:
+#          cpus: '2'
+#          memory: 1G
+#        reservations:
+#          cpus: '1'
+#          memory: 512M
         limits:
-          cpus: '2'
-          memory: 1G
-        reservations:
-          cpus: '1'
-          memory: 512M
+          cpus: '0.75'
+          memory: 768M
     restart: unless-stopped
     networks:
       - pathkeeper-net
@@ -88,7 +97,8 @@ services:
     volumes:
       - ./secrets:/secrets:ro
     deploy:
-      replicas: 2
+    # replicas: 2
+      replicas: 1
       resources:
         limits:
           cpus: '0.5'
@@ -117,8 +127,11 @@ services:
     deploy:
       replicas: 1
       resources:
+#        limits:
+#          cpus: '1'
+#          memory: 512M
         limits:
-          cpus: '1'
+          cpus: '0.5'
           memory: 512M
     restart: unless-stopped
     networks:

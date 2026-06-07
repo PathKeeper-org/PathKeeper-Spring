@@ -7,7 +7,10 @@ COPY gradle gradle
 COPY settings.gradle .
 COPY build.gradle .
 COPY common/build.gradle common/
+COPY api-server/build.gradle api-server/
 COPY location-processor/build.gradle location-processor/
+COPY alert-sender/build.gradle alert-sender/
+COPY path-persister/build.gradle path-persister/
 
 RUN ./gradlew :location-processor:dependencies --no-daemon || true
 

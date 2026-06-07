@@ -45,7 +45,8 @@ public class UserController {
     @Operation(summary = "FCM 토큰 업데이트", description = "앱 실행 시 갱신되는 스마트폰의 푸시 알림용 FCM 토큰을 서버에 저장합니다.")
     @PatchMapping("/me/fcm-token")
     public ResponseEntity<FcmTokenResponse> updateFcmToken(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody FcmTokenRequest request) {
-        return ResponseEntity.ok(null); // 임시 반환값
+        return ResponseEntity.ok(userService.updateFcmToken(userDetails.getEmail(), request.fcmToken()));
     }
 }

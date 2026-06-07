@@ -12,12 +12,12 @@ COPY location-processor/build.gradle location-processor/
 COPY alert-sender/build.gradle alert-sender/
 COPY path-persister/build.gradle path-persister/
 
-RUN ./gradlew :alert-sender:dependencies --no-daemon || true
+RUN ./gradlew :path-persister:dependencies --no-daemon || true
 
 COPY common common
-COPY alert-sender alert-sender
+COPY path-persister path-persister
 
-RUN ./gradlew :alert-sender:bootJar --no-daemon -x test
+RUN ./gradlew :path-persister:bootJar --no-daemon -x test
 
 FROM eclipse-temurin:21-jre-alpine
 
@@ -26,13 +26,13 @@ USER spring:spring
 
 WORKDIR /app
 
-COPY --from=builder /workspace/alert-sender/build/libs/alert-sender.jar app.jar
+COPY --from=builder /workspace/path-persister/build/libs/path-persister.jar app.jar
 
 ENV JAVA_OPTS="-XX:+UseG1GC -XX:MaxRAMPercentage=75.0"
 
-EXPOSE 8083
+EXPOSE 8084
 
-HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
-    CMD wget -q --spider http://localhost:8083/actuator/health || exit 1
+HEALTHCHECK --interval=30s --timeout=3s --start-period=90s --retries=3 \
+    CMD wget -q --spider http://localhost:8084/actuator/health || exit 1
 
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

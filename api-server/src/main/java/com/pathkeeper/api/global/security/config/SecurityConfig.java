@@ -52,6 +52,7 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/actuator/**").permitAll() // 상태 확인 경로는 모두 통과
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/api/v1/auth/signup", "/api/v1/auth/login", "/api/v1/auth/reissue").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")

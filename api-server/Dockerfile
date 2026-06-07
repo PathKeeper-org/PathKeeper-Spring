@@ -14,6 +14,9 @@ COPY build.gradle .
 # 각 모듈의 build.gradle만 먼저 복사 (의존성 캐싱)
 COPY common/build.gradle common/
 COPY api-server/build.gradle api-server/
+COPY location-processor/build.gradle location-processor/
+COPY alert-sender/build.gradle alert-sender/
+COPY path-persister/build.gradle path-persister/
 
 # 의존성 다운로드 (이 단계가 캐시되면 빌드 빨라짐)
 RUN ./gradlew :api-server:dependencies --no-daemon || true

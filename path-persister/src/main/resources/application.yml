@@ -22,7 +22,6 @@ spring:
         jdbc:
           batch_size: 1000
         order_inserts: true
-        dialect: org.hibernate.spatial.dialect.postgis.PostgisDialect
     show-sql: false
     open-in-view: false
 

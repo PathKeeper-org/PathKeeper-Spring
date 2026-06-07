@@ -13,18 +13,27 @@ import java.util.Optional;
 public interface SafeZoneRepository extends JpaRepository<SafeZone, Long> {
     void deleteByUser(User user);
 
-    // ST_Buffer를 사용해 경로를 다각형으로 확장하여 저장
+    // ST_Buffer로 경로를 확장하여 저장. CTE로 polygon을 한 번만 계산하고 bbox도 함께 산출
     @Modifying
     @Query(value = """
-        INSERT INTO safe_zones (user_id, polygon, created_at, updated_at)
-        VALUES (
+        WITH buffered AS (
+            SELECT ST_Buffer(ST_GeomFromText(:wkt, 4326)::geography, :radius)::geography AS poly
+        )
+        INSERT INTO safe_zones (user_id, name, polygon, bbox_min_lat, bbox_max_lat, bbox_min_lng, bbox_max_lng, created_at, updated_at)
+        SELECT
             :userId,
-            ST_Buffer(ST_GeomFromText(:wkt, 4326)::geography, :radius)::geography,
+            :name,
+            poly,
+            ST_YMin(poly::geometry),
+            ST_YMax(poly::geometry),
+            ST_XMin(poly::geometry),
+            ST_XMax(poly::geometry),
             NOW(),
             NOW()
-        )
+        FROM buffered
     """, nativeQuery = true)
     void saveSafeZoneWithBuffer(@Param("userId") Long userId,
+                                @Param("name") String name,
                                 @Param("wkt") String wkt,
                                 @Param("radius") double radius
     );

@@ -21,6 +21,8 @@ public enum ErrorCode {
 
     INVALID_INVITE_CODE(HttpStatus.BAD_REQUEST, "I001", "유효하지 않거나 만료된 초대 코드입니다."),
     CANNOT_LINK_SELF(HttpStatus.BAD_REQUEST, "I002", "자신의 코드는 등록할 수 없습니다."),
+    ALREADY_LINKED(HttpStatus.CONFLICT, "I003", "이미 파트너가 연결되어 있습니다."),
+    INVALID_ROLE_FOR_LINK(HttpStatus.BAD_REQUEST, "I004", "보호자와 피보호자 역할이 각각 달라야 연결할 수 있습니다."),
 
     PARTNER_NOT_LINKED(HttpStatus.NOT_FOUND, "U004", "연결된 파트너가 없습니다."),
 
