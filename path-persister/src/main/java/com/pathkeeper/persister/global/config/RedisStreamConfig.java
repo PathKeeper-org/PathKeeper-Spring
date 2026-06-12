@@ -35,12 +35,14 @@ public class RedisStreamConfig {
             );
             log.info("Consumer Group 생성: stream={}, group={}", STREAM_KEY, CONSUMER_GROUP);
 
-        } catch (RedisCommandExecutionException e) {
-            // 이미 존재하면 무시
-            if (e.getMessage() != null && e.getMessage().contains("BUSYGROUP")) {
+        } catch (Exception e) {
+            // 스프링이 포장한 에러 메시지나, 그 내부의 진짜 원인(Cause)에 BUSYGROUP이 있는지 확인
+            if ((e.getMessage() != null && e.getMessage().contains("BUSYGROUP")) ||
+                    (e.getCause() != null && e.getCause().getMessage() != null && e.getCause().getMessage().contains("BUSYGROUP"))) {
                 log.info("Consumer Group 이미 존재: {}", CONSUMER_GROUP);
             } else {
-                throw e;
+                // 진짜 다른 에러라면 앱을 중단시킴
+                throw new RuntimeException("Redis Consumer Group 생성 중 알 수 없는 에러 발생", e);
             }
         }
     }

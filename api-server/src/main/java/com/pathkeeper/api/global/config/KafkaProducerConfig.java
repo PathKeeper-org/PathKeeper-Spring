@@ -50,6 +50,9 @@ public class KafkaProducerConfig {
         // 타임아웃
         config.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 5000);
         config.put(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, 30000);
+        // 버퍼 포화 시 HTTP 스레드 블로킹 방지: 1초 안에 버퍼 공간 없으면 즉시 실패
+        // 미설정 시 기본 60초 블로킹 → nginx 504 유발
+        config.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 1000);
 
         // Serializer를 인스턴스로 직접 주입 (class 참조 방식 deprecated 대응)
         return new DefaultKafkaProducerFactory<>(
