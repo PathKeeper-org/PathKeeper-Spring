@@ -19,10 +19,11 @@ services:
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       SECRET_KEY: ${SECRET_KEY}
-      JAVA_OPTS: "-XX:+UseG1GC -Xmx400m -Xms200m"
+#      JAVA_OPTS: "-XX:+UseG1GC -Xmx400m -Xms200m"
+      JAVA_OPTS: "-Xmx256m -Xms128m"
     deploy:
     # replicas: 3
-      replicas: 1
+      replicas: 2
       resources:
 #        limits:
 #          cpus: '1'
@@ -35,7 +36,7 @@ services:
           memory: 512M
     ports:
 #      - "8081-8083:8081"
-      - "8081:8081"
+      - "8081-8082:8081"
     restart: unless-stopped
     networks:
       - pathkeeper-net
@@ -57,10 +58,12 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD}
-      JAVA_OPTS: "-XX:+UseG1GC -Xmx512m -Xms256m"
+#      JAVA_OPTS: "-XX:+UseG1GC -Xmx512m -Xms256m"
+      # heap(256m) + native(~256m) = ~512m → 컨테이너 limit과 일치
+      JAVA_OPTS: "-Xmx256m -Xms128m"
     deploy:
     # replicas: 10
-      replicas: 2
+      replicas: 3
       resources:
 #        limits:
 #          cpus: '2'
@@ -69,8 +72,8 @@ services:
 #          cpus: '1'
 #          memory: 512M
         limits:
-          cpus: '0.75'
-          memory: 768M
+          cpus: '1'
+          memory: 512M
     restart: unless-stopped
     networks:
       - pathkeeper-net
@@ -93,16 +96,16 @@ services:
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       FCM_CREDENTIALS: /secrets/fcm.json
-      JAVA_OPTS: "-XX:+UseG1GC -Xmx400m -Xms200m"
+      # heap(192m) + native(~160m) = ~352m → 384M 컨테이너에 안전하게 수용
+      JAVA_OPTS: "-Xmx192m -Xms96m"
     volumes:
       - ./secrets:/secrets:ro
     deploy:
-    # replicas: 2
-      replicas: 1
+      replicas: 2
       resources:
         limits:
-          cpus: '0.5'
-          memory: 512M
+          cpus: '0.25'
+          memory: 384M
     restart: unless-stopped
     networks:
       - pathkeeper-net
@@ -123,7 +126,8 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD}
-      JAVA_OPTS: "-XX:+UseG1GC -Xmx400m -Xms200m"
+      # heap(192m) + native(~150m) = ~342m → 384M 컨테이너에 안전하게 수용
+      JAVA_OPTS: "-Xmx192m -Xms96m"
     deploy:
       replicas: 1
       resources:
@@ -132,7 +136,7 @@ services:
 #          memory: 512M
         limits:
           cpus: '0.5'
-          memory: 512M
+          memory: 384M
     restart: unless-stopped
     networks:
       - pathkeeper-net

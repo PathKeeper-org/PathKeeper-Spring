@@ -1,0 +1,14 @@
+global:
+  evaluation_interval: 15s
+  external_labels:
+    cluster: pathkeeper-local
+
+# 메트릭 수집은 Grafana Alloy가 담당 (remote_write로 push)
+# Prometheus는 데이터 저장소 + 쿼리 엔진 역할만 수행
+# --web.enable-remote-write-receiver 플래그로 push 수신 활성화
+
+scrape_configs:
+  # Prometheus 자기 자신 모니터링
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

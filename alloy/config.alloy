@@ -1,0 +1,143 @@
+// ═══════════════════════════════════════════════════════════
+// PathKeeper Grafana Alloy 설정
+//
+// 역할:
+//   1. Spring Boot 9개 인스턴스 메트릭 수집 → Prometheus (remote_write)
+//   2. Docker 컨테이너 로그 수집 → Loki (push)
+//
+// 아키텍처:
+//   Alloy ──scrape──► Spring Boot services
+//   Alloy ──remote_write──► Prometheus :9090
+//   Alloy ──docker logs──► Loki :3100
+// ═══════════════════════════════════════════════════════════
+
+// ─── Prometheus Remote Write 엔드포인트 ─────────────────────
+prometheus.remote_write "main" {
+  endpoint {
+    url = "http://prometheus:9090/api/v1/write"
+  }
+}
+
+// ─── 메트릭 수집: api-server (2 인스턴스) ───────────────────
+prometheus.scrape "api_server" {
+  targets = [
+    {"__address__" = "pathkeeper-spring-api-server-1:8081", "service" = "api-server"},
+    {"__address__" = "pathkeeper-spring-api-server-2:8081", "service" = "api-server"},
+  ]
+  metrics_path    = "/actuator/prometheus"
+  scrape_interval = "10s"
+  forward_to      = [prometheus.remote_write.main.receiver]
+}
+
+// ─── 메트릭 수집: location-processor (3 인스턴스) ────────────
+prometheus.scrape "location_processor" {
+  targets = [
+    {"__address__" = "pathkeeper-spring-location-processor-1:8082", "service" = "location-processor"},
+    {"__address__" = "pathkeeper-spring-location-processor-2:8082", "service" = "location-processor"},
+    {"__address__" = "pathkeeper-spring-location-processor-3:8082", "service" = "location-processor"},
+  ]
+  metrics_path    = "/actuator/prometheus"
+  scrape_interval = "10s"
+  forward_to      = [prometheus.remote_write.main.receiver]
+}
+
+// ─── 메트릭 수집: alert-sender (2 인스턴스) ─────────────────
+prometheus.scrape "alert_sender" {
+  targets = [
+    {"__address__" = "pathkeeper-spring-alert-sender-1:8083", "service" = "alert-sender"},
+    {"__address__" = "pathkeeper-spring-alert-sender-2:8083", "service" = "alert-sender"},
+  ]
+  metrics_path    = "/actuator/prometheus"
+  scrape_interval = "10s"
+  forward_to      = [prometheus.remote_write.main.receiver]
+}
+
+// ─── 메트릭 수집: path-persister (1 인스턴스) ───────────────
+prometheus.scrape "path_persister" {
+  targets = [
+    {"__address__" = "pathkeeper-spring-path-persister-1:8084", "service" = "path-persister"},
+  ]
+  metrics_path    = "/actuator/prometheus"
+  scrape_interval = "10s"
+  forward_to      = [prometheus.remote_write.main.receiver]
+}
+
+// ─── Docker 컨테이너 탐지 ────────────────────────────────────
+discovery.docker "containers" {
+  host             = "unix:///var/run/docker.sock"
+  refresh_interval = "5s"
+}
+
+// ─── 컨테이너 레이블 가공 ─────────────────────────────────────
+discovery.relabel "containers" {
+  targets = discovery.docker.containers.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label  = "service"
+  }
+  rule {
+    source_labels = ["__meta_docker_container_log_stream"]
+    target_label  = "logstream"
+  }
+}
+
+// ─── Docker 로그 수집 ────────────────────────────────────────
+loki.source.docker "containers" {
+  host             = "unix:///var/run/docker.sock"
+  targets          = discovery.relabel.containers.output
+  forward_to       = [loki.process.pipeline.receiver]
+  refresh_interval = "5s"
+}
+
+// ─── 로그 처리 파이프라인 ─────────────────────────────────────
+// Spring Boot prod 프로필: logging.structured.format.console=logstash
+// logstash JSON 필드: @timestamp, level, logger_name, thread_name, message, stack_trace
+// JSON = 한 줄 = 한 로그 엔트리이므로 멀티라인 병합 불필요
+loki.process "pipeline" {
+  forward_to = [loki.write.main.receiver]
+
+  // JSON 파싱: level, logger_name 추출
+  stage.json {
+    expressions = {
+      level  = "level",
+      logger = "logger_name",
+    }
+  }
+
+  // level → Loki 레이블 (Grafana 로그 패널 색상 구분)
+  stage.labels {
+    values = {
+      level = "",
+    }
+  }
+}
+
+// ─── Loki 전송 엔드포인트 ────────────────────────────────────
+loki.write "main" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
+
+// ─── 인프라 자체 메트릭 수집 ──────────────────────────────────
+
+// Alloy 자기 자신: remote_write 큐 상태, 스크랩 성공률 등
+prometheus.exporter.self "alloy" {}
+
+prometheus.scrape "alloy_self" {
+  targets    = prometheus.exporter.self.alloy.targets
+  forward_to = [prometheus.remote_write.main.receiver]
+}
+
+// Loki: log ingestion rate, 디스크 사용량 등
+prometheus.scrape "loki" {
+  targets      = [{"__address__" = "loki:3100"}]
+  metrics_path = "/metrics"
+  forward_to   = [prometheus.remote_write.main.receiver]
+}
