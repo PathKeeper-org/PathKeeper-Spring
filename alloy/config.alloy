@@ -18,6 +18,17 @@ prometheus.remote_write "main" {
   }
 }
 
+// ─── Spring Boot 메트릭에 namespace 라벨 추가 ───────────────
+// Grafana 대시보드 변수 $Namespace가 namespace 라벨을 필요로 함
+prometheus.relabel "add_namespace" {
+  forward_to = [prometheus.remote_write.main.receiver]
+
+  rule {
+    target_label = "namespace"
+    replacement  = "pathkeeper"
+  }
+}
+
 // ─── 메트릭 수집: api-server (2 인스턴스) ───────────────────
 prometheus.scrape "api_server" {
   targets = [
@@ -26,7 +37,7 @@ prometheus.scrape "api_server" {
   ]
   metrics_path    = "/actuator/prometheus"
   scrape_interval = "10s"
-  forward_to      = [prometheus.remote_write.main.receiver]
+  forward_to      = [prometheus.relabel.add_namespace.receiver]
 }
 
 // ─── 메트릭 수집: location-processor (3 인스턴스) ────────────
@@ -38,7 +49,7 @@ prometheus.scrape "location_processor" {
   ]
   metrics_path    = "/actuator/prometheus"
   scrape_interval = "10s"
-  forward_to      = [prometheus.remote_write.main.receiver]
+  forward_to      = [prometheus.relabel.add_namespace.receiver]
 }
 
 // ─── 메트릭 수집: alert-sender (2 인스턴스) ─────────────────
@@ -49,7 +60,7 @@ prometheus.scrape "alert_sender" {
   ]
   metrics_path    = "/actuator/prometheus"
   scrape_interval = "10s"
-  forward_to      = [prometheus.remote_write.main.receiver]
+  forward_to      = [prometheus.relabel.add_namespace.receiver]
 }
 
 // ─── 메트릭 수집: path-persister (1 인스턴스) ───────────────
@@ -59,7 +70,7 @@ prometheus.scrape "path_persister" {
   ]
   metrics_path    = "/actuator/prometheus"
   scrape_interval = "10s"
-  forward_to      = [prometheus.remote_write.main.receiver]
+  forward_to      = [prometheus.relabel.add_namespace.receiver]
 }
 
 // ─── Docker 컨테이너 탐지 ────────────────────────────────────
@@ -131,13 +142,15 @@ loki.write "main" {
 prometheus.exporter.self "alloy" {}
 
 prometheus.scrape "alloy_self" {
-  targets    = prometheus.exporter.self.alloy.targets
-  forward_to = [prometheus.remote_write.main.receiver]
+  targets         = prometheus.exporter.self.alloy.targets
+  scrape_interval = "10s"
+  forward_to      = [prometheus.remote_write.main.receiver]
 }
 
 // Loki: log ingestion rate, 디스크 사용량 등
 prometheus.scrape "loki" {
-  targets      = [{"__address__" = "loki:3100"}]
-  metrics_path = "/metrics"
-  forward_to   = [prometheus.remote_write.main.receiver]
+  targets         = [{"__address__" = "loki:3100"}]
+  metrics_path    = "/metrics"
+  scrape_interval = "10s"
+  forward_to      = [prometheus.remote_write.main.receiver]
 }

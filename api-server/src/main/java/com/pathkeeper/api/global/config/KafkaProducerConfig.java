@@ -1,6 +1,7 @@
 package com.pathkeeper.api.global.config;
 
 import com.pathkeeper.common.dto.LocationMessage;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.MicrometerProducerListener;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
@@ -29,7 +31,7 @@ public class KafkaProducerConfig {
      * 다른 메시지 타입이 추가되면 별도 ProducerFactory 생성.
      */
     @Bean
-    public ProducerFactory<String, LocationMessage> locationMessageProducerFactory() {
+    public ProducerFactory<String, LocationMessage> locationMessageProducerFactory(MeterRegistry meterRegistry) {
         Map<String, Object> config = new HashMap<>();
 
         // 기본 연결
@@ -55,11 +57,14 @@ public class KafkaProducerConfig {
         config.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 1000);
 
         // Serializer를 인스턴스로 직접 주입 (class 참조 방식 deprecated 대응)
-        return new DefaultKafkaProducerFactory<>(
+        DefaultKafkaProducerFactory<String, LocationMessage> factory = new DefaultKafkaProducerFactory<>(
                 config,
                 new StringSerializer(),
                 new JsonSerializer<>()
         );
+        // kafka_producer_record_send_total 등 JMX 기반 메트릭을 Micrometer에 바인딩
+        factory.addListener(new MicrometerProducerListener<>(meterRegistry));
+        return factory;
     }
 
     /**

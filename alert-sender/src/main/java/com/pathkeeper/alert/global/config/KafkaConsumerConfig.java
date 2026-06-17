@@ -1,6 +1,7 @@
 package com.pathkeeper.alert.global.config;
 
 import com.pathkeeper.common.dto.AlertEvent;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,6 +11,7 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.MicrometerConsumerListener;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
@@ -26,7 +28,7 @@ public class KafkaConsumerConfig {
     private String bootstrapServers;
 
     @Bean
-    public ConsumerFactory<String, AlertEvent> alertConsumerFactory() {
+    public ConsumerFactory<String, AlertEvent> alertConsumerFactory(MeterRegistry meterRegistry) {
         Map<String, Object> config = new HashMap<>();
 
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
@@ -54,7 +56,11 @@ public class KafkaConsumerConfig {
                 "com.pathkeeper.common.dto.AlertEvent");
         config.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
 
-        return new DefaultKafkaConsumerFactory<>(config);
+        DefaultKafkaConsumerFactory<String, AlertEvent> factory =
+                new DefaultKafkaConsumerFactory<>(config);
+        // kafka_consumer_fetch_manager_records_lag 등 JMX 기반 메트릭을 Micrometer에 바인딩
+        factory.addListener(new MicrometerConsumerListener<>(meterRegistry));
+        return factory;
     }
 
     @Bean
