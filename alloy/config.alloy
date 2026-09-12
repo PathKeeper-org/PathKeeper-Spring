@@ -2,19 +2,24 @@
 // PathKeeper Grafana Alloy 설정
 //
 // 역할:
-//   1. Spring Boot 9개 인스턴스 메트릭 수집 → Prometheus (remote_write)
-//   2. Docker 컨테이너 로그 수집 → Loki (push)
+//   1. Spring Boot 9개 인스턴스 메트릭 수집 → Grafana Cloud Prometheus (remote_write)
+//   2. Docker 컨테이너 로그 수집 → Grafana Cloud Loki (push)
 //
 // 아키텍처:
 //   Alloy ──scrape──► Spring Boot services
-//   Alloy ──remote_write──► Prometheus :9090
-//   Alloy ──docker logs──► Loki :3100
+//   Alloy ──remote_write──► Grafana Cloud Prometheus
+//   Alloy ──docker logs──► Grafana Cloud Loki
 // ═══════════════════════════════════════════════════════════
 
-// ─── Prometheus Remote Write 엔드포인트 ─────────────────────
+// ─── Prometheus Remote Write 엔드포인트 (Grafana Cloud) ──────
 prometheus.remote_write "main" {
   endpoint {
-    url = "http://prometheus:9090/api/v1/write"
+    url = "https://prometheus-prod-49-prod-ap-northeast-0.grafana.net/api/prom/push"
+
+    basic_auth {
+      username = "3579560"
+      password = sys.env("GRAFANA_CLOUD_API_TOKEN")
+    }
   }
 }
 
@@ -129,10 +134,15 @@ loki.process "pipeline" {
   }
 }
 
-// ─── Loki 전송 엔드포인트 ────────────────────────────────────
+// ─── Loki 전송 엔드포인트 (Grafana Cloud) ─────────────────────
 loki.write "main" {
   endpoint {
-    url = "http://loki:3100/loki/api/v1/push"
+    url = "https://logs-prod-030.grafana.net/loki/api/v1/push"
+
+    basic_auth {
+      username = "1785455"
+      password = sys.env("GRAFANA_CLOUD_API_TOKEN")
+    }
   }
 }
 
@@ -143,14 +153,6 @@ prometheus.exporter.self "alloy" {}
 
 prometheus.scrape "alloy_self" {
   targets         = prometheus.exporter.self.alloy.targets
-  scrape_interval = "10s"
-  forward_to      = [prometheus.remote_write.main.receiver]
-}
-
-// Loki: log ingestion rate, 디스크 사용량 등
-prometheus.scrape "loki" {
-  targets         = [{"__address__" = "loki:3100"}]
-  metrics_path    = "/metrics"
   scrape_interval = "10s"
   forward_to      = [prometheus.remote_write.main.receiver]
 }
